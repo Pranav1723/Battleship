@@ -1,0 +1,80 @@
+from tkinter import *
+
+
+class Battleship:
+    def __init__(self, master):
+        self.master = master
+        master.title("Battleship")
+
+        # Initialize the game board
+        self.board = [[0 for x in range(10)] for y in range(10)]
+
+        # Create the grid of buttons for the game board
+        self.buttons = []
+        for i in range(10):
+            row = []
+            for j in range(10):
+                button = Button(master, text="", width=2, height=1, command=lambda x=i, y=j: self.fire(x, y))
+                button.grid(row=i, column=j)
+                row.append(button)
+            self.buttons.append(row)
+
+        # Initialize the ships
+        self.ships = [(1, 5), (2, 4), (3, 3), (4, 2)]
+
+        # Randomly place the ships on the board
+        from random import randint
+        for size, count in self.ships:
+            for i in range(count):
+                placed = False
+                while not placed:
+                    x = randint(0, 9)
+                    y = randint(0, 9)
+                    horizontal = randint(0, 1) == 0
+                    if self.check_loc(x, y, size, horizontal):
+                        self.ship_loc(x, y, size, horizontal)
+                        placed = True
+
+        # Initialize the remaining number of ships
+        self.remaining = len(self.ships)
+
+    def check_loc(self, x, y, size, horizontal):
+        if horizontal:
+            if y + size > 10:
+                return False
+            for j in range(y, y + size):
+                if self.board[x][j] != 0:
+                    return False
+        else:
+            if x + size > 10:
+                return False
+            for i in range(x, x + size):
+                if self.board[i][y] != 0:
+                    return False
+        return True
+
+    def ship_loc(self, x, y, size, horizontal):
+        for i in range(size):
+            if horizontal:
+                self.board[x][y + i] = size
+            else:
+                self.board[x + i][y] = size
+
+    def fire(self, x, y):
+        if self.board[x][y] == 0:
+            self.buttons[x][y].config(bg="gray", text="X")
+        elif self.board[x][y] == -1:
+            pass
+        else:
+            size = self.board[x][y]
+            self.buttons[x][y].config(bg="red", text=str(size))
+            self.board[x][y] = -1
+            self.remaining -= 1
+            if self.remaining == 0:
+                print("YOU WIN!!!")
+                self.master.destroy()
+
+
+root = Tk()
+game = Battleship(root)
+root.mainloop()
